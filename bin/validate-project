@@ -1,0 +1,70 @@
+#!/usr/bin/env node
+var aws = require('aws-sdk');
+var path = require('path');
+var fs   = require('fs');
+const args = require('yargs').argv;
+const guid = require('uuid');
+const jcf = require( "./jcf");
+
+var projectDir="";
+
+if( args.hasOwnProperty('path'))
+{
+  if( path.isAbsolute( args.path))
+    projectDir = args.path
+  else
+  {
+    projectDir = path.join(process.cwd(), args.path);
+  }
+} 
+else if (args.hasOwnProperty('name')) 
+{
+    projectDir = path.join(process.cwd(), args.name);
+}
+else
+{
+  process.exit();
+}
+
+console.log( `Validating project in ${projectDir}`);
+var config = {};
+
+if(!fs.existsSync( projectDir))
+{
+  console.log( "projhect directory doesnt exist, exiting");
+  process.exit();
+}
+
+if(fs.existsSync( path.join(projectDir,'project.json')))
+{
+  config = JSON.parse( fs.readFileSync( path.join(projectDir,'project.json')));
+}
+else
+{
+  console.log( "Cant find project.json this isnt a project directory, xiting");
+  process.exit();
+}
+
+console.log( `validating s3-root: ${jcf.s3.root}/${config.s3.root}`);
+var s3 = new aws.S3();
+var p = s3.headBucket({Bucket: jcf.s3.root}).promise();
+p.then( function(data)
+{
+  console.log( "Root bucket exists");
+  console.log(data);
+  return s3.headObject({Bucket:jcf.s3.root, Key:config.s3.root}).promise();
+})
+.then( function(data)
+{
+  console.log( "Project root exists");
+})
+.catch(function(err)
+{
+  console.log( "Project root doesnt exist");
+  console.log(err);
+})
+.then( function()
+{
+  
+});;
+

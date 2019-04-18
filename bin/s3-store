@@ -1,0 +1,127 @@
+#!/usr/bin/env node
+var aws = require('aws-sdk');
+var s3 = new aws.S3();
+var path = require('path');
+var fs   = require('fs');
+const args = require('yargs').argv;
+const guid = require('uuid');
+const jcf = require( "./jcf");
+const cp = require('child_process');
+const m = require("moment");
+
+console.log( "pushing to project storage");
+console.log( jcf );
+var inItem = "";
+var outItem = "";
+var s3Iten = "";
+var ref = "";
+var tarArgs = '-czf';
+
+console.log( args );
+if( !args.compress )
+{
+  tarArgs = '-cf';
+}
+
+if( args.in)
+{
+  inItem = args.in;
+}
+else
+{
+  console.log( "in parameter must specificy an item in the local data direrctory");
+  process.exit();
+}
+if( args.out)
+{
+  outItem = args.out;
+}
+else
+{
+  console.log( "out parameter must specificy an item name in the S3 project storage area");
+  process.exit();
+}
+
+if( args.ref)
+{
+  ref = args.ref; 
+}
+else
+{
+  ref = outItem;
+  console.log( `Warning: storing this upload with reference ${ref}`);
+}
+
+if( !fs.existsSync('./project.json'))
+{
+  console.log( "This isnt  aproject directory - cant find project.json");
+  process.exit();
+}
+var cfg = JSON.parse(fs.readFileSync('./project.json'));
+console.log( `loaded project config for ${cfg.name}`);
+
+if( !fs.existsSync(inItem))
+{
+  console.log( `cant find in item, looked for ${inItem}`);
+  process.exit();
+}
+
+var inStat = fs.statSync(inItem);
+if( inStat.isDirectory())
+{
+  var tarItem = "";
+  tarItem = path.join( jcf.local.workspace, `.s3store.${outItem}`);
+  try
+  {
+    console.log( "archiving directory for pushing to s3");
+    var tgzOut = cp.execSync( `tar ${tarArgs} ${tarItem} ${inItem}`,{cwd:process.cwd()});
+    console.log("archived directory");
+    if( tgzOut != "")
+      console.log( tgzOut);
+    s3Item = tarItem;
+  }
+  catch( err )
+  {
+    console.log( `couldnt archive the requested directory ${inItem}`);
+    console.log( err );
+  }
+}
+else
+{
+  s3Item = inItem;
+}
+
+var p = s3.headBucket({Bucket: jcf.s3.root}).promise();
+p.then( function(data)
+{
+  var uploadParams = {Bucket: jcf.s3.root};
+  var fileStream = fs.createReadStream(s3Item);
+  fileStream.on('error', function(err) {
+    console.log('File Error', err);
+  });
+  uploadParams.Body = fileStream;
+
+  var path = require('path');
+  uploadParams.Key = path.join(cfg.s3.root,cfg.s3.storage,outItem);
+
+  // call S3 to retrieve upload file to specified bucket
+  return s3.upload (uploadParams).promise();
+})
+.then( function(data)
+{
+  data['at'] = m();
+  cfg.uploads[ref] = data;
+
+  //ne to re open the project config to make sure we dont over write
+  // missed updates if we are a long running update
+  fs.writeFileSync('./project.json', JSON.stringify( cfg,null,2 ));
+  console.log( `upload complete ref:${ref}`);
+  fs.unlinkSync(s3Item);
+})
+.catch( function(err)
+{
+  console.log( `cant upload ${outItem}`);
+  console.log(err);
+  fs.unlinkSync(s3Item);
+});
+

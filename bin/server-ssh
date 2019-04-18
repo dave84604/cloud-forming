@@ -1,0 +1,72 @@
+#!/usr/bin/env node
+var aws = require('aws-sdk');
+var path = require('path');
+var fs   = require('fs');
+const args = require('yargs').argv;
+const guid = require('uuid');
+const jcf = require( "./jcf");
+const inst = require( './instances');
+const cp = require('child_process');
+const m = require("moment");
+const cfn = require( "cfn-functions");
+aws.config.update({region:'eu-west-2'});
+const cf = new aws.CloudFormation();
+const ec2 = new aws.EC2();
+
+var taregtInstance = "";
+var targetStack = "";
+
+console.log( "pulling git repos for project");
+
+if( args.instance )
+{
+  targetInstance = args.instance;
+}
+
+if( !fs.existsSync('./project.json'))
+{
+  console.log( "This isnt  aproject directory - cant find project.json");
+  process.exit();
+}
+var cfg = JSON.parse(fs.readFileSync('./project.json'));
+console.log( `loaded project config for ${cfg.name}`);
+
+if( args.stack )
+{
+  stack = cfg.stacks[args.stack];
+}
+else
+{
+  stack = cfg.stacks[0];
+}
+
+console.log( JSON.stringify(stack, null, 2));
+
+if( stack );
+{
+    inst.instance( stack.name, targetInstance, (instance, instId, stackId) =>
+    {
+      console.log( `Instance has id:${instId} in stack:${stackId}`);
+      var serverKey = path.join( cfg.root, 'keys',`${instance.KeyName}.pem`);
+      var pubIP = instance.PublicIpAddress;
+
+      console.log( `key:${serverKey} ip: ${pubIP}`);
+      if( ! fs.existsSync(serverKey))
+      {
+	  console.log( `Cant find server key in project at ${serverKey}`);
+	  process.exit();
+      }
+
+      var child = cp.spawn('ssh', ['-i',serverKey, `ec2-user@${pubIP}`], 
+      {
+	  stdio: 'inherit'
+      });
+
+      child.on('exit', function (e, code) {
+	console.log("finished");
+      });
+    });
+  }
+
+
+

@@ -1,0 +1,10 @@
+{
+  "name": "dave84606",
+  "s3": {
+    "root": "d066c203-34b4-4391-919a-d3bcbb0607d0",
+    "storage": "data",
+    "backup": "project-backups"
+  },
+  "stacks": {},
+  "uploads": {}
+}
