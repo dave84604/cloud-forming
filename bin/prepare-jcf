@@ -1,0 +1,50 @@
+#!/usr/bin/env node
+var aws = require('aws-sdk');
+var s3 = new aws.S3();
+var path = require('path');
+var fs   = require('fs');
+const args = require('yargs').argv;
+const guid = require('uuid');
+const jcf = require('./jcf');
+
+var cwd = process.cwd();
+var params = process.argv;
+
+console.log( `peparing JCF`);
+
+//probably will end up doing more in here including s3 initialisation etc
+//and note that this will obviously fail if the user doesnt have access
+//rights to createa dir in the given place.
+try
+{
+  if( !fs.existsSync(jcf.local.workspace))
+  {
+    console.log( "Making local workspace");
+    fs.mkdirSync( path.join(jcf.local.workspace),{recursive:true});
+  }
+}
+catch( err )
+{
+  console.log( `looks like you didnt have permission to create ${jcf.local.workspace}`);
+  console.log( "please make it by hand");
+}
+
+//initial;ise the root bucket
+var jcfroot = `jcf-${guid.v4()}`
+
+s3.createBucket
+( 
+	  {
+	    Bucket:jcfroot, 
+	    ACL:'private',
+	    CreateBucketConfiguration: {LocationConstraint: 'eu-west-2' } 
+	  }
+)
+.promise()
+.then( function(data)
+{
+  jcf.s3.root = jcfroot;
+  fs.writeFileSync( path.join( __dirname,'./jcf.js'), JSON.stringify( jcf,null,2 ));
+  console.log( `Created root JCF bucket ${jcf.s3.root} and saved config`);
+});
+

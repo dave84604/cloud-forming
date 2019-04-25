@@ -1,0 +1,18 @@
+{
+  "name": "website",
+  "s3": {
+    "root": "8d1e2009-ac13-4c0b-ade2-44fd8f770bbc",
+    "storage": "data",
+    "backup": "project-backups"
+  },
+  "stacks": {},
+  "uploads": {
+    "nvm-backup": {
+      "Location": "https://jcf-3e1c28e8-311d-4e7e-adbf-deaeb40a594a.s3.eu-west-2.amazonaws.com//8d1e2009-ac13-4c0b-ade2-44fd8f770bbc/data/nvm-backup",
+      "Bucket": "jcf-3e1c28e8-311d-4e7e-adbf-deaeb40a594a",
+      "Key": "/8d1e2009-ac13-4c0b-ade2-44fd8f770bbc/data/nvm-backup",
+      "ETag": "\"d26ba05a67ce5f957d0ac5b3b0fccfb8-6\"",
+      "at": "2019-04-25T07:41:43.138Z"
+    }
+  }
+}

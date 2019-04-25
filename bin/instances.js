@@ -4,7 +4,7 @@ var path = require('path');
 var fs   = require('fs');
 const args = require('yargs').argv;
 const guid = require('uuid');
-const jcf = require( "./jcf");
+const jcf = require( "./jcf.json");
 const cp = require('child_process');
 const m = require("moment");
 aws.config.update({region:'eu-west-2'});

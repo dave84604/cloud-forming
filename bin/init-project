@@ -5,7 +5,7 @@ var path = require('path');
 var fs   = require('fs');
 const args = require('yargs').argv;
 const guid = require('uuid');
-const jcf = require('./jcf');
+const jcf = require('./jcf.json');
 
 var cwd = process.cwd();
 var params = process.argv;
@@ -22,6 +22,16 @@ var defaultConfig = {
 };
 
 
+function uploadCFG(bktName, bktKey, cfg)
+{
+  return s3.putObject(
+	{
+		Bucket:bktName, 
+		Key: bktKey, 
+		Body:JSON.stringify(cfg)
+	}).promise();
+}
+
 console.log( `Initialising project in ${cwd}`);
 
 if( !args.name)
@@ -32,25 +42,23 @@ if( !args.name)
 var projectDir = path.join(cwd, args.name);
 
 defaultConfig.name = args.name;
+var s3ProjectConf = path.join(defaultConfig.s3.root,'project.json');
 
 //save the project config to the s3 bucket
-var s3ProjectConf = path.join(defaultConfig.s3.root,'project.json');
 var p = s3.headBucket({Bucket: jcf.s3.root}).promise();
 p.then( function(data)
 {
   console.log( "Root bucket exists");
-  console.log(data);
-  return s3.putObject(
-	{
-		Bucket:jcf.s3.root, 
-		Key:s3ProjectConf, 
-		Body:JSON.stringify(defaultConfig)
-	}).promise();
+  return uploadCFG(jcf.s3.root, s3ProjectConf, defaultConfig);
 })
 .catch( function(err)
 {
   console.log( "cant upload project config");
   console.log(err);
+})
+.finally( function()
+{
+  console.log( "Project config upload completed");
 });
 
 //save project config locally

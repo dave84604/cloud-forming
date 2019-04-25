@@ -1,0 +1,15 @@
+{
+  "name": "jcf",
+  "version": "1.0.0",
+  "description": "JSON Cloud Forming support module",
+  "main": "jcf.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Dave Frost",
+  "license": "ISC",
+  "dependencies": {
+    "aws-sdk": "^2.441.0",
+    "moment": "^2.24.0"
+  }
+}

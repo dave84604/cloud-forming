@@ -5,7 +5,7 @@ var path = require('path');
 var fs   = require('fs');
 const args = require('yargs').argv;
 const guid = require('uuid');
-const jcf = require( "./jcf");
+const jcf = require( "./jcf.json");
 const cp = require('child_process');
 const m = require("moment");
 
@@ -91,6 +91,8 @@ else
   s3Item = inItem;
 }
 
+console.log( "looking for jcf-root: "+jcf.s3.root);
+
 var p = s3.headBucket({Bucket: jcf.s3.root}).promise();
 p.then( function(data)
 {
@@ -101,9 +103,10 @@ p.then( function(data)
   });
   uploadParams.Body = fileStream;
 
-  var path = require('path');
-  uploadParams.Key = path.join(cfg.s3.root,cfg.s3.storage,outItem);
-
+  console.log( `Uploading key ${path.join('/',cfg.s3.storage,outItem)}`);
+  uploadParams.Key = path.join('/',cfg.s3.root,cfg.s3.storage,outItem);
+  
+  console.log( `upload params: ${JSON.stringify(uploadParams,null,2)} `);
   // call S3 to retrieve upload file to specified bucket
   return s3.upload (uploadParams).promise();
 })

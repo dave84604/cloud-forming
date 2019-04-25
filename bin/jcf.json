@@ -1,0 +1,8 @@
+{
+  "s3": {
+    "root": "jcf-3e1c28e8-311d-4e7e-adbf-deaeb40a594a"
+  },
+  "local": {
+    "workspace": "/usr/local/workspace"
+  }
+}
