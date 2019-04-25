@@ -1,11 +1,11 @@
-var ec2i = require("ec2-instance.js");
-var st = require("cf-stack.js");
-var sg = require("security-groups.js");
-var rp = require("roles-profiles.js");
-var awssdk = require('aws.js');
-var cfscr = require('cf-scripting.js');
-var dns = require('domains.js');
-var pf = require('php-functions.js');
+var jcf = require("jcf");
+var ec2i = 
+var st = 
+var sg = 
+var rp = 
+var awssdk = 
+var cfscr = 
+var dns = 
 var uuid = require('uuid');
 var fs = require('fs');
 var cfg = require( '../project.json');
@@ -14,13 +14,13 @@ var path = require('path');
 var m = require("moment");
 var c = {};
 if( args.uat )
-  c = require('./constants')('uat','Dave84604UAT','dave84604');
+  c = require('./constants')('uat','TransferTravelUAT','transfertravel');
 else if( args.dev )
 {
   if( args.dns )
-    c = require('./constants')('dev','Dave84604Dev',args.dns);
+    c = require('./constants')('dev','TransferTravelDev',args.dns);
   else
-    c = require('./constants')('dev','Dave84604Dev','dave84604dev');
+    c = require('./constants')('dev','TransferTravelDev','transfertraveldev');
 }
 var ud = require('./user-data')(c);
 const appEnv = require('./env.js')(c);
@@ -40,9 +40,9 @@ sg.addTcpProto( tt_sg, '8000','8000', "0.0.0.0/0" ); // api server runs on port 
 sg.addTcpProto( tt_sg, '4200','4200', "0.0.0.0/0" ); // web server runs on port 4200!
 
 //configure roles and policies (mostly default stuff)
-var tt_role = rp.defaultRole( "Dave84604Role");
-var tt_instp = rp.instanceProfile( "Dave84604InstanceProfile", tt_role);
-var tt_policy = rp.defaultPolicy("Dave84604Policies", tt_role);
+var tt_role = rp.defaultRole( "TransferTravelRole");
+var tt_instp = rp.instanceProfile( "TransferTravelInstanceProfile", tt_role);
+var tt_policy = rp.defaultPolicy("TransferTravelPolicies", tt_role);
 
 //.configure stack parameters
 st.addParam( cfs, c.itype );
@@ -80,7 +80,7 @@ var uatDns = dns.aRecord("ServerDNS",c.hzName);
 dns.setName(uatDns, cfscr.joinAll('.', c.dnsName.ref, c.hzName ))
   .attachResource(uatDns, tt_ec2.attrib('PublicIp'));
 
-var rdsSG = sg.updateSG( "Dave84604RDS", c.rds_sg, "3306", "3306", tt_sg.attrib('GroupId'));
+var rdsSG = sg.updateSG( "TransferTravelRDS", c.rds_sg, "3306", "3306", tt_sg.attrib('GroupId'));
 
 //configure the reesources for the stack
 st.addResource( cfs, tt_ec2 )
