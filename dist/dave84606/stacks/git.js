@@ -10,49 +10,32 @@ module.exports = function(c)
     return  {
       api:
       {
-	  repo:"https://github.com/dave84604/jcf-test-api.git",
-	  branch: "dev",
+	  repo:"ssh://gm-dave-frost@bitbucket:/transfer-travel/transfer-travel-api.git",
+	  branch: "feature/affiliate-tracking",
 	  path: c.apiInstallDir
       },
       web:
       {
-	  repo:"https://github.com/dave84604/jcf-test-web.git",
-	  branch: "dev",
+	  repo:"ssh://gm-dave-frost@bitbucket:/transfer-travel/transfer-travel-web.git",
+	  branch: "feature/globalizeme-sprint-1",
 	  path: c.webInstallDir
       }
     }
   }
-  else if( c.deploytype === 'uat')
+  else if( c.deployType === 'uat')
   {
     return  {
       api:
       {
-	  repo:"https://github.com/dave84604/jcf-test-api.git",
-	  branch: "uat",
-	  path: c.apiinstalldir
+	  repo:"ssh://gm-dave-frost@bitbucket:/transfer-travel/transfer-travel-api.git",
+	  branch: "feature/affiliate-tracking",
+	  path: c.apiInstallDir
       },
       web:
       {
-	  repo:"https://github.com/dave84604/jcf-test-web.git",
-	  branch: "uat",
-	  path: c.webinstalldir
-      }
-    }
-  }
-  else if( c.deploytype === 'prod')
-  {
-    return  {
-      api:
-      {
-	  repo:"https://github.com/dave84604/jcf-test-api.git",
-	  branch: "master",
-	  path: c.apiinstalldir
-      },
-      web:
-      {
-	  repo:"https://github.com/dave84604/jcf-test-web.git",
-	  branch: "master",
-	  path: c.webinstalldir
+	  repo:"ssh://gm-dave-frost@bitbucket:/transfer-travel/transfer-travel-web.git",
+	  branch: "feature/globalizeme-sprint-1",
+	  path: c.webInstallDir
       }
     }
   }

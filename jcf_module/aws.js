@@ -1,12 +1,15 @@
 var AWS = require("aws-sdk");
 var m = require('moment');
+const uuid = require('uuid');
+var fs = require("fs");
+var path = require("path");
 
 AWS.config.update({region:'eu-west-2'});
 
 var cloudFormation = new AWS.CloudFormation();
 
 var defaultStackParams = {
-  StackName: '', /* required */
+  StackName: '', 
   Capabilities: [
     "CAPABILITY_IAM",
   ],
@@ -16,31 +19,7 @@ var defaultStackParams = {
   ],
   OnFailure: "DELETE",
   Parameters: [
-/*
-    {
-      ParameterKey: 'STRING_VALUE',
-      ParameterValue: 'STRING_VALUE',
-      ResolvedValue: 'STRING_VALUE',
-      UsePreviousValue: true || false
-    },
-*/
-    /* more items */
   ],
-//  ResourceTypes: [
-//    "AWS::EC2::*"
-//  ],
-//  RoleARN: '',
-/*
-  RollbackConfiguration: {
-    MonitoringTimeInMinutes: 0,
-    RollbackTriggers: [
-      {
-        Arn: '', // required 
-        Type: 'E' // required
-      },
-    ]
-  },
-*/
   StackPolicyBody: '{"Statement" : [{"Effect" : "Allow","Action" : "Update:Modify","Principal": "*","Resource" : "*"}]}',
   Tags: [
     {
@@ -52,45 +31,37 @@ var defaultStackParams = {
   TimeoutInMinutes: 10
 };
 
-module.exports = 
+module.exports = function( args, stackCFG, stackVals )
 {
-  validate: function( jsonCF)
-  {	
-	var params = {
-  		TemplateBody: jsonCF
-	};
-  	return cloudFormation.validateTemplate(params).promise();
-  },
+    return {
+	validate: function( jsonCF)
+	{	
+	      var params = {
+		      TemplateBody: jsonCF
+	      };
+	      return cloudFormation.validateTemplate(params).promise();
+	},
 
-  configureStack: function( jsonCF, name, requestToken )
-  {
-   	var sp = JSON.parse( JSON.stringify( defaultStackParams ));
-	sp.StackName = name;
-	sp.ClientRequestToken = requestToken;
-	sp.TemplateBody = jsonCF;
-	return sp;
-  },
+	configureStack: function( jsonCF, name, requestToken )
+	{
+	      var sp = JSON.parse( JSON.stringify( defaultStackParams ));
+	      sp.StackName = name;
+	      sp.ClientRequestToken = requestToken;
+	      sp.TemplateBody = jsonCF;
+	      return sp;
+	},
 
-  build: function( stackCFG, paramVals)
-  {
-	console.log( JSON.stringify(paramVals));
-	stackCFG.Parameters = paramVals;
-    	return cloudFormation.createStack( stackCFG).promise();
-  },
+	build: function( stackCFG, paramVals)
+	{
+	      console.log( JSON.stringify(paramVals));
+	      stackCFG.Parameters = paramVals;
+	      return cloudFormation.createStack( stackCFG).promise();
+	},
 
-  deleteStack: function(name, requestToken)
-  {
-	var params = {
-  	  StackName: name,
-  	  ClientRequestToken: requestToken,
-  	  RetainResources: []
-	};
-	return cloudFormation.deleteStack(params).promise();
-  },
-
-  completed: function(name)
-  {
-      return cloudFormation.waitFor('stackCreateComplete', {'StackName':name}).promise();
-  }
+	completed: function(name)
+	{
+	    return cloudFormation.waitFor('stackCreateComplete', {'StackName':name}).promise();
+	}
+    };
 }
 

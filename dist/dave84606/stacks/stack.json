@@ -1,0 +1,146 @@
+{
+  "Description": "A Cloud Formation script to create a Transfer travel development server",
+  "Parameters": {
+    "InstanceType": {
+      "Description": "WebServer EC2 instance type",
+      "Type": "String",
+      "Default": "t2.medium",
+      "AllowedValues": [
+        "t2.nano",
+        "t2.micro",
+        "t2.small",
+        "t2.medium",
+        "m1.small",
+        "m1.medium",
+        "m3.large"
+      ],
+      "NoEcho":"false",
+      "ConstraintDescription": "must be a valid EC2 instance type."
+    },
+    "UserEmail": {
+      "Description": "Email used to configure git",
+      "Type": "String"
+    },
+    "KeyName": {
+      "Description": "Name of an existing EC2 KeyPair to enable SSH access to the instances",
+      "Type": "AWS::EC2::KeyPair::KeyName",
+      "ConstraintDescription": "must be the name of an existing EC2 KeyPair."
+    }
+  },
+  "Resources": {
+    "TransferTravelServer": {
+      "Type": "AWS::EC2::Instance",
+      "Metadata": {
+        "AWS::CloudFormation::Init": {
+          "configSets": {
+            "default": []
+          }
+        }
+      },
+      "Properties": {
+        "SecurityGroups": [
+          {
+            "Ref": "transferTravelSG"
+          }
+        ],
+        "IamInstanceProfile": {
+          "Ref": "TransferTravelInstanceProfile"
+        },
+        "KeyName": {},
+        "InstanceType": {},
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "TramsferTravel"
+          },
+          {
+            "Key": "Type",
+            "Value": "Development"
+          }
+        ],
+        "ImageId": "ami-087a01f9fea74819b",
+        "Userdata": {}
+      }
+    },
+    "transferTravelSG": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Enable SSH access and HTTP access on the inbound port",
+        "SecurityGroupIngress": [
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "22",
+            "ToPort": "22",
+            "CidrIp": "0.0.0.0/0"
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "80",
+            "ToPort": "80",
+            "CidrIp": "0.0.0.0/0"
+          }
+        ]
+      }
+    },
+    "TransferTravelRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": [
+                  "ec2.amazonaws.com"
+                ]
+              },
+              "Action": [
+                "sts:AssumeRole"
+              ]
+            }
+          ]
+        },
+        "Path": "/"
+      }
+    },
+    "TransferTravelInstanceProfile": {
+      "Type": "AWS::IAM::InstanceProfile",
+      "Properties": {
+        "Path": "/",
+        "Roles": [
+          {
+            "Ref": "TransferTravelRole"
+          }
+        ]
+      }
+    },
+    "TransferTravelPolicies": {
+      "Type": "AWS::IAM::Policy",
+      "Properties": {
+        "PolicyName": "root",
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "cloudformation:DescribeStacks",
+                "cloudformation:DescribeStackEvents",
+                "cloudformation:DescribeStackResource",
+                "cloudformation:DescribeStackResources",
+                "cloudformation:GetTemplate",
+                "cloudformation:List*"
+              ],
+              "Resource": "*"
+            }
+          ]
+        },
+        "Roles": [
+          {
+            "Ref": "TransferTravelRole"
+          }
+        ]
+      }
+    }
+  },
+  "Outputs": {}
+}

@@ -5,7 +5,16 @@ AWS.config.update({region:'eu-west-2'});
 var rds = new AWS.RDS();
 
 var params = {
-  DBInstanceIdentifier: 'jcftestdb',
+  DBInstanceIdentifier: 'transfertravel',
+/*  Filters: [
+    {
+      Name: 'db-instance-id',
+      Values: [ 
+        'transfertravel',
+      ]
+    },
+  ],
+*/
   MaxRecords: 100
 };
 
